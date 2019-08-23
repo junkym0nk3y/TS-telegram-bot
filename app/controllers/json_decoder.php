@@ -5,27 +5,28 @@
    * Returns PHP readeble data, from Telegram webhook.
    */
   class Json_Decoder {
-    private $json;
-    private $pattern = '/[^a-zа-яёй0-9 \(\)\?\,\s\-\–\.\_\!]/iu';
-    private $msg_pattern = '/[^a-zа-яёй0-9 \=\:\(\)\?\,\s\+\-\–\.\!]/iu';
+    private $json, $redirect;
+    private $pattern = '/[^a-zа-яёй0-9\@\(\)\?\,\s\-\–\.\_\!]/iu';
+    private $msg_pattern = '/[^a-zа-яёй0-9\=\:\(\)\?\,\s\+\-\–\.\!]/iu';
 
-    function __construct( array $settings, string $redirect_to ) {
+    function __construct( string $redirect ) {
       $json = file_get_contents( 'php://input' );
       $this->json = json_decode( $json, true );
+      $this->redirect = $redirect;
       // DEBUG 
       if ( DEBUG ) {
         $this->saveLog( LOG_FOLDER . 'json_d.log' );
-        $this->checkWebhook( $settings, LOG_FOLDER . 'history.log', LOG_FOLDER . 'dublicates.log' );
+        $this->checkWebhook( LOG_FOLDER . 'history.log', LOG_FOLDER . 'dublicates.log' );
       }
       // DEBUG
-      $this->verifyAccess( $redirect_to );
+      $this->verifyAccess();
     }
 
     /**
      * Verify access and redirect if forbidden.
      * @param  string $url Url page for redirect
      */
-    private function verifyAccess( string $redirect_to ): void
+    private function verifyAccess(): void
     {
       $tg_subs1 = '/^149\.154\.(16[0-9]|17[0-5])\.([1-9]|[1-8][0-9]|9[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-4])$/';
       $tg_subs2 = '/^91\.108\.([4-7])\.([1-9]|[1-8][0-9]|9[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-4])$/';
@@ -36,7 +37,7 @@
       switch (true) {
         case !empty( $_FILES ):                                   // Don't allow upload files
         case ( !$from_tg_server ):                                // Post not from Telegram Servers
-          header( "Location: $redirect_to" );
+          header( "Location: $this->redirect" );
           die();
         case !isset( $this->json['message'] ):                    // No message
         case isset( $this->json['message']['forward_from'] ):     // Forward
@@ -142,7 +143,7 @@
      * @param  int|integer  $max_chars   Max length
      * @return array
      */
-    private function pregCheck( array $array, array $allowed, string $add_to_key = '', int $max_chars ): array
+    private function pregCheck( array $array, array $allowed, string $add_to_key = '', int $max_chars = null ): array
     {
       $new_arr = [];
       foreach ( $array as $key => $value ) {
@@ -151,7 +152,7 @@
             $new_arr[ $add_to_key . $key ] = (int)$value;
           else {
             $val = !isset( $value ) ? '' : preg_replace( $this->pattern, '', $value );
-            $new_arr[ $add_to_key . $key ] = mb_substr( $val, 0, $max_chars, 'UTF-8' ); 
+            $new_arr[ $add_to_key . $key ] = $max_chars ? mb_substr( $val, 0, $max_chars, 'UTF-8' ) : $val; 
           }
         }
       }
@@ -159,7 +160,7 @@
     }
 
 
-    private function checkWebhook( array $settings, string $history_log, string $dublicates ): void
+    private function checkWebhook( string $history_log, string $dublicates ): void
     { 
       $result = '';
       $new_file_msg =  date('Y-m-d H:i:s') . PHP_EOL . 'makes new file' . PHP_EOL;

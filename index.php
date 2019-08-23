@@ -16,15 +16,16 @@
    * Controllers
    * 
    */
-  $dec = new Json( $settings, $redirect_to );
-  $id = $dec->getID();                              // Chat and User ID
-  $chat_name = $dec->chatName();                    // Chat name where request come from
-  $tg = new Telegram( $settings['token'] );         // Class for communication with api
-  $tg->setProxy( $settings['proxy'] );              // Comment this, unless proxy needed
-  $tg->checkGroup( $chat_name, $allowed, $id[0] );  // Check out if this chat in allowed list and leave it if not
-  PDO_start::getConnect( $settings );
+  $dec = new Json( $redirect );
+  $id = $dec->getID();                             // Chat and User ID
+  $chat_name = $dec->chatName();                   // Chat name where request come from
+  $tg = new Telegram( $settings['telegram'] );     // Class for communication with api
+  $tg->setProxy();                                 // Comment this, unless proxy needed
+  $tg->checkGroup( $chat_name, $allowed, $id[0] ); // Check out if this chat in allowed list and leave it if not
+
+  PDO_start::getConnect( $settings['database'] );
   $router = new Router( $dec->collectData(), $tg, new DB($chat_name), new DB_post($chat_name) ); 
-  $router->setMaster( $settings['master'], true );  // Remove true, unless you need override admin access
+  $router->setMaster( $settings['telegram']['master'], true );  // Remove true, unless you need override admin access to bot
   $action = $router->getAction( $lang );
 
   /**
@@ -32,7 +33,7 @@
    * Send message trough API
    * 
    */
-  $send = new TG_post( $settings['token'] );
-  $send->setProxy( $settings['proxy'] ); // Comment this, unless proxy needed
+  $send = new TG_post( $settings['telegram'] );
+  $send->setProxy(); // Comment this, unless proxy needed
   $send->sendMsg( $action, $id );
 ?>

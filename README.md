@@ -159,10 +159,10 @@ l@me:~$ rm -r ~/tmp
 1. Set const DEBUG to true in /app/configs/config.php
 2. Run in Terminal
 ```console
-l@me:~/tmp$ BOT="your project dir"
-l@me:~/tmp$ watch -n 1 sudo tail -n 10  $BOT/*.log /var/log/nginx/error.log
+l@me:~$ BOT="your project dir"
+l@me:~$ watch -n 1 sudo tail -n 10  $BOT/logs/*.log /var/log/nginx/error.log
 ```
-3. Check sql sometimes
+3. Check SQL sometimes
 ```sql
 SELECT user_id, user_first_name, status, msgs, karma, lie_times, UNIX_TIMESTAMP(last_seen), user_bio AS last_seen FROM table ORDER BY msgs DESC;
 ```

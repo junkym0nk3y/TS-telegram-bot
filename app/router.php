@@ -203,6 +203,7 @@
             return $this->lang['respond']['sticker']['change_setname'];
           } else
             return $this->newStickerSet( $file, $slugify ); // Add new stickerset
+        case preg_match( '/\b(' . $this->lang['command']['add_sticker2'] . ')\b/iu', $this->info['msg_text'] ):
         case preg_match( '/\b(' . $this->lang['command']['add_sticker'] . ')\b/iu', $this->info['msg_text'] ):
           return $this->lang['respond']['sticker']['noreply']; // Add new sticker  
         case preg_match( '/\b(' . $this->lang['command']['my_stickers'] . ')\b/iu', $this->info['msg_text'] ):
@@ -294,7 +295,7 @@
       $user_id = $this->info['reply_from_id'];
       $username = $this->info['reply_from_username'];
       $first_name = $this->info['reply_from_first_name'];
-
+      $cmd = '';
       switch ( true ) { 
         case preg_match( '/\b(' . $this->lang['command']['save_bio'] . ')\b/iu', $this->info['msg_text'] ):
           if ( $this->info['reply_from_is_bot'] )
@@ -325,10 +326,13 @@
 
           return $this->userBio( $user_id, $username ); // User's bio
         case preg_match( '/\b(' . $this->lang['command']['add_sticker'] . ')\b/iu', $this->info['msg_text'] ):
+          $cmd = $this->lang['command']['add_sticker'];
+        case preg_match( '/\b(' . $this->lang['command']['add_sticker2'] . ')\b/iu', $this->info['msg_text'] ):
+          $cmd = $cmd ?: $this->lang['command']['add_sticker2'];
           if ( $this->info['reply_from_is_bot'] )
             exit('ok');
 
-          return $this->makeQuote( '/data/quotes/' ); // Make new sticker
+          return $this->makeQuote( '/data/quotes/', $cmd ); // Make new sticker
         default:
           exit('ok');
       }
@@ -510,11 +514,11 @@
      * @param  string $tmp_path [description]
      * @return [type]           [description]
      */
-    private function makeQuote( string $tmp_path ): string
+    private function makeQuote( string $tmp_path, string $command ): string
     {
       $folder = $_SERVER['DOCUMENT_ROOT'] . $tmp_path;
       $this->mkdirIfNotExist($folder); // Make temp folder if not exist
-      $slugify = $this->slugifySet( $this->lang['command']['add_sticker'] ); // Translate stickerset name
+      $slugify = $this->slugifySet( $command ); // Translate stickerset name
       if ( mb_strlen($slugify[0]) < 4 )
         return $this->lang['respond']['bio']['too_short'];
 

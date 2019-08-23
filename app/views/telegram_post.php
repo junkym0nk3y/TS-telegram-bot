@@ -8,8 +8,8 @@ use \App\Controllers\Telegram as Tg;
 class Telegram_Post extends Tg {
 	private $chat_id, $message_id, $msg;
 
-	function __construct( string $token ) {
-    parent::__construct($token);
+	function __construct( array $tg_config ) {
+    parent::__construct( $tg_config );
 	}
 
 

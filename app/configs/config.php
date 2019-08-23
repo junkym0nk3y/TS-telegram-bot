@@ -1,14 +1,14 @@
 <?php
+  setlocale( LC_TIME, 'ru_RU.utf8' );
   date_default_timezone_set( 'Europe/Moscow' );
   header( "Content-Type: application/json; charset=utf-8', true,200" );
-  setlocale( LC_TIME, 'ru_RU.utf8' );
-
-  $allowed = [ 'stoner_music', 'sysodmins_chat', 'progeri_chat' ]; // Only for this chats - bot will respond
-  $settings = parse_ini_file( '/var/www/telegram.ini' );           // Tg Token, Proxy, DB credentials etc
-  $lang = parse_ini_file( './app/configs/bot.ini', true );         // List of bot's commands
-  $redirect_to = 'https://github.com/junkym0nk3y/TS-telegram-bot';
-  define( 'DEBUG', false );
+  define( 'DEBUG', true );
   define( 'LOG_FOLDER', $_SERVER['DOCUMENT_ROOT'] . '/logs/' );
+
+  $lang     = parse_ini_file( './app/configs/bot.ini', true );      // List of bot's commands
+  $settings = parse_ini_file( '/var/www/telegram.ini', true );      // Tg Token, Proxy, DB credentials etc
+  $allowed  = [ 'stoner_music', 'sysodmins_chat', 'progeri_chat' ]; // Only for this chats - bot will respond
+  $redirect = 'https://github.com/junkym0nk3y/TS-telegram-bot';     // Redirect url
 
   // DEBUG
   if ( DEBUG ) {

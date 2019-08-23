@@ -28,7 +28,7 @@
         $query = "CREATE TABLE $this->table (
           id               INT NOT NULL AUTO_INCREMENT,
           user_id          BIGINT NOT NULL,
-          user_first_name  VARCHAR(60) NOT NULL,
+          user_first_name  VARCHAR(65) NOT NULL,
           user_bio         VARCHAR(512),
           hex_color        VARCHAR(7) NOT NULL,
           status           VARCHAR(15) NOT NULL,

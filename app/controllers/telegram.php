@@ -5,11 +5,11 @@
    * Class for communication with Telegram's API.
    */
   class Telegram {
-    protected $token; // Telegram token from Bot
+    protected $tg_config; // Telegram token from Bot
     protected $proxy = null;
 
-    function __construct( string $token ) {
-      $this->token = $token;
+    function __construct( array $tg_config ) {
+      $this->tg_config = $tg_config;
     }
 
 
@@ -17,9 +17,9 @@
      * Set up proxy settings, if you need it.
      * @param string  $proxy  Proxy adress and port
      */
-    public function setProxy( string $proxy ): void
+    public function setProxy(): void
     {
-      $this->proxy = $proxy;
+      $this->proxy = $this->tg_config['proxy'];
     }
 
 
@@ -215,7 +215,7 @@
       $curl = curl_init();
 
       $options = [
-        CURLOPT_URL => 'https://api.telegram.org/file/bot' . $this->token .  '/' . $url_path,
+        CURLOPT_URL => 'https://api.telegram.org/file/bot' . $this->tg_config['token'] .  '/' . $url_path,
         CURLOPT_HEADER => false,
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_SSL_VERIFYPEER => true,
@@ -266,7 +266,7 @@
       $running = null; // running processes
 
       $options = [
-        CURLOPT_URL => 'https://api.telegram.org/bot' . $this->token .  '/' . $method,
+        CURLOPT_URL => 'https://api.telegram.org/bot' . $this->tg_config['token'] .  '/' . $method,
         CURLOPT_HEADER => false,
         CURLOPT_RETURNTRANSFER => true,
       ];
@@ -307,7 +307,7 @@
       $curl = curl_init();
 
       $options = [
-        CURLOPT_URL => 'https://api.telegram.org/bot' . $this->token .  '/' . $method,
+        CURLOPT_URL => 'https://api.telegram.org/bot' . $this->tg_config['token'] .  '/' . $method,
         CURLOPT_HEADER => false,
         CURLOPT_RETURNTRANSFER => true,
       ];
