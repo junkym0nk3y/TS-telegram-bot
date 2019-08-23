@@ -164,7 +164,7 @@ l@me:~/tmp$ watch -n 1 sudo tail -n 10  $BOT/*.log /var/log/nginx/error.log
 ```
 3. Check sql sometimes
 ```sql
-SELECT user_id, user_first_name, status, msgs, karma, lie_times, UNIX_TIMESTAMP(last_seen), user_bio AS last_seen FROM databasename ORDER BY user_first_name ASC;
+SELECT user_id, user_first_name, status, msgs, karma, lie_times, UNIX_TIMESTAMP(last_seen), user_bio AS last_seen FROM table ORDER BY msgs DESC;
 ```
 
 ## TODO
