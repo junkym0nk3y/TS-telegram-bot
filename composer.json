@@ -1,0 +1,25 @@
+{
+  "name": "junkym0nk3y/ts-telegram-bot",
+  "type": "project",
+  "description": "PHP Telegram bot for TS group",
+  "keywords": ["telegram", "bot"],
+  "license": "MIT",
+  "homepage": "https://github.com/junkym0nk3y/TS-telegram-bot",
+  "autoload":{
+    "psr-4":{
+      "App\\":"app"
+    }
+  },
+  "require": {
+    "php"          : ">=7.1",
+    "ext-curl"     : "*",
+    "ext-imagick"  : "*",
+    "ext-intl"     : "*",
+    "ext-json"     : "*",
+    "ext-mbstring" : "*",
+    "ext-pdo"      : "*"
+  },
+  "config": {
+    "optimize-autoloader": true
+  }
+}

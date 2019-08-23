@@ -1,0 +1,9 @@
+data/
+logs/
+style/fonts/
+vendor/
+sftp-config.json
+composer.phar
+composer.lock
+.git
+._*
