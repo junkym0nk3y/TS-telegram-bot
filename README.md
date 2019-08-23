@@ -7,7 +7,7 @@ I made this bot is specialy for [chat Typical Sysadmin ("Типичный Сис
 
 ## Contents:
 <p align="center">
-  <img src="https://github.com/junkymonk3y/TS-telegram-bot/raw/master/docs/git_logo.png?raw=true" alt="Telegram bot logo"/>
+  <img src="https://github.com/junkymonk3y/TS-telegram-bot/raw/master/docs/screen.png?raw=true" alt="screenshot"/>
 </p>  
 
 [Dependencies](#dependencies)  
@@ -160,12 +160,16 @@ l@me:~$ rm -r ~/tmp
 2. Run in Terminal
 ```console
 l@me:~$ BOT="your project dir"
-l@me:~$ watch -n 1 sudo tail -n 10  $BOT/logs/*.log /var/log/nginx/error.log
+l@me:~$ watch -n 1 sudo tail -n 10 $BOT/logs/*.log /var/log/nginx/error.log
 ```
 3. Check SQL sometimes
 ```sql
 SELECT user_id, user_first_name, status, msgs, karma, lie_times, UNIX_TIMESTAMP(last_seen), user_bio AS last_seen FROM table ORDER BY msgs DESC;
 ```
+
+<p align="center">
+  <img src="https://github.com/junkymonk3y/TS-telegram-bot/raw/master/docs/git_logo.png?raw=true" alt="Telegram bot logo"/>
+</p>  
 
 ## TODO
 - [ ] Make comments great again  
