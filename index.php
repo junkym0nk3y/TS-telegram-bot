@@ -20,7 +20,7 @@
   $id = $dec->getID();                             // Chat and User ID
   $chat_name = $dec->chatName();                   // Chat name where request come from
   $tg = new Telegram( $settings['telegram'] );     // Class for communication with api
-  $tg->setProxy();                                 // Comment this, unless proxy needed
+  //$tg->setProxy();                                 // Comment this, unless proxy needed
   $tg->checkGroup( $chat_name, $allowed, $id[0] ); // Check out if this chat in allowed list and leave it if not
 
   PDO_start::getConnect( $settings['database'] );
@@ -34,6 +34,6 @@
    * 
    */
   $send = new TG_post( $settings['telegram'] );
-  $send->setProxy(); // Comment this, unless proxy needed
+  //$send->setProxy(); // Comment this, unless proxy needed
   $send->sendMsg( $action, $id );
 ?>
