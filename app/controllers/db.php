@@ -26,7 +26,6 @@
 
       if (!$result){ 
         $query = "CREATE TABLE $this->table (
-          id               INT NOT NULL AUTO_INCREMENT,
           user_id          BIGINT NOT NULL,
           user_first_name  VARCHAR(65) NOT NULL,
           user_bio         VARCHAR(512),
@@ -40,7 +39,7 @@
           lie_times        INT unsigned DEFAULT 0,
           last_lie         TIMESTAMP DEFAULT CURRENT_TIMESTAMP(),
           before_lie       TIMESTAMP DEFAULT CURRENT_TIMESTAMP(),
-          PRIMARY KEY (id)
+          PRIMARY KEY (user_id)
         ); ";
 
         $query .= "CREATE TABLE $this->sticker_sets (
@@ -58,7 +57,7 @@
     }
 
 
-    public function botAddDate(): string
+    public function botAddDate()
     {
       $query = "SELECT first_seen FROM $this->table ORDER BY first_seen ASC LIMIT 1";
       $stmt = $this->request( $query );
@@ -74,7 +73,7 @@
     public function getUsers( $for_kick = false, $due = '' )
     {
       if( !$for_kick )
-        $query = "SELECT user_id, user_first_name FROM $this->table ORDER BY id ASC";
+        $query = "SELECT user_id, user_first_name FROM $this->table ORDER BY user_id ASC";
       else
         $query = "SELECT user_id, user_first_name FROM $this->table WHERE status = 'member' AND UNIX_TIMESTAMP(last_seen) < $due ORDER BY user_first_name ASC";
 

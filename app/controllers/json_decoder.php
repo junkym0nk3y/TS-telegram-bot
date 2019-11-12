@@ -6,8 +6,8 @@
    */
   class Json_Decoder {
     private $json, $redirect;
-    private $pattern = '/[^a-zа-яёй0-9\@\(\)\?\,\s\-\–\.\_\!]/iu';
-    private $msg_pattern = '/[^a-zа-яёй0-9\=\:\(\)\?\,\s\+\-\–\.\!]/iu';
+    private $pattern = '/[^\w\@\(\)\?\,\s\-\–\.\!]/iu';
+    private $msg_pattern = '/[^\w\@\=\:\(\)\?\,\s\+\-\–\.\!]/iu';
 
     function __construct( string $redirect ) {
       $json = file_get_contents( 'php://input' );
@@ -43,13 +43,24 @@
         case isset( $this->json['message']['forward_from'] ):     // Forward
         case isset( $this->json['edited_message'] ):
         case $this->json['message']['from']['is_bot'] === true:   // Message from bot
-        case $this->json['message']['chat']['type'] == 'private': // Not supported type of chat
+        //case $this->json['message']['chat']['type'] == 'private': // Not supported type of chat
         case $this->json['message']['chat']['type'] == 'channel': // Same thing
           exit('ok');
         default:
           return;  
       }
     }
+
+
+
+    private function slugify( string $title ): string
+      {
+      $rules = 'Any-Latin; NFD; [:Nonspacing Mark:] Remove; NFC; [:Punctuation:] Remove; Lower();';
+      $translate = transliterator_transliterate( $rules, trim( $title ) );
+      $translate = preg_replace( '/[-\s]+/', '_', $translate );
+      $text = preg_replace( '/[^\w]/', '', $translate );
+      return $text;
+    } 
 
 
     /**
@@ -70,7 +81,12 @@
      */
     public function chatName(): string
     {
-      return preg_replace( $this->pattern, '', $this->json['message']['chat']['username'] );
+      if ( !isset($this->json['message']['chat']['username']) || empty($this->json['message']['chat']['username']) )
+        $chat_name = $this->slugify( $this->json['message']['chat']['title'] );
+      else 
+        $chat_name = $this->json['message']['chat']['username'];
+
+      return preg_replace( $this->pattern, '', $chat_name );
     }
 
 

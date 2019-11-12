@@ -60,9 +60,8 @@
     {
       $db_users = $this->db->getUsers();
       $user_not_exist = $db_users == 'no users' ? true : !array_key_exists( $this->info['user_id'], $db_users );
-      $leave = [ 'left', 'kicked' ];
       $avatars_path = '/data/avatars/';
-
+      $leave = [ 'left', 'kicked' ];
       if ( in_array($this->info['status'], $leave) ){ // Remove from DB, if leave
         $this->db_post->userLeave( $this->info['user_id'] );
         exit('ok');
@@ -117,14 +116,13 @@
       $bot_call = ( $bot_name || $alter_name );
 
       if ( $this->info['new_member'] ) { // Welcome message
-        /*
-          $username = !empty( $username ) ? $username : $this->info['user_first_name'];
-          $find = ['{{ username }}', '{{ user_id }}'];
-          $replace = [ 'username' => $username, 'user_id' => $this->info['user_id'] ];
-          $msg = str_replace( $find ,$replace , $this->lang['respond']['welcome'] );
-          return [ 'sendMsg', $msg ];
-         */
         exit('ok');
+       // $path = $_SERVER['DOCUMENT_ROOT'] . $this->lang['respond']['hello_file'];
+       // $tmpl = file_get_contents( $path, true );
+       // $find = ['{{ username }}', '{{ user_id }}'];
+       // $replace = [ 'username' => $this->info['user_first_name'], 'user_id' => $this->info['user_id'] ];
+       // $msg = str_replace( $find, $replace, $tmpl );
+       // return [ 'sendMsg', $msg ];
       }
 
       switch (true) {
@@ -236,28 +234,59 @@
           $wait_for_collect = 60;
           $passed = $this->daysPassed( $this->db->botAddDate() );
           $days = $passed[0] . ' ' . $passed[1];
-          
+          $pattern = '/[^a-zа-яёй0-9\@\(\)\?\,\s\-\–\.\_\!]/iu';
+          $max_users = 70;
+          $i = $to_kick = 0;
+          $not_exist_users = [];
+          $tmpl = $this->lang['respond']['tanos']['list'] . PHP_EOL;
+
           if ( $passed[0] <= $wait_for_collect ) {
             $find = [ '{{ days }}', '{{ wait_for_collect }}' ];
             $replace = compact( 'days', 'wait_for_collect' );
             return str_replace( $find, $replace, $this->lang['respond']['tanos']['wait_for_it'] );
-          } else {
-            $list = $this->db->getUsers( true, strtotime('-2 week') ); //('-1 day') );//
-            if( !$list == 'no users' )
-              return $this->lang['respond']['tanos']['no_users'];
-
-            $length = count( $list );
-            $i = 0;
-            $tmpl = $this->lang['respond']['tanos']['list'];
-            foreach ( $list as $user_id => $username ) {
-              $i++;
-              $find = [ '{{ user_id }}', '{{ username }}' ];
-              $replace = ['user_id' => $user_id, 'username' =>  $username ];
-              $tmpl .= str_replace( $find, $replace, $this->lang['respond']['tanos']['row'] );
-              $tmpl .= $i !== $length ? ', ' : $this->lang['respond']['tanos']['ask'];
-            }
-            return $tmpl; // Makes list of non-active users
           }
+
+          $list = $this->db->getUsers( true, strtotime('-120 day') ); //('-1 day') );//
+
+          if( $list == 'no users' )
+            return $this->lang['respond']['tanos']['no_users'];
+
+          $length = count( $list );
+
+          foreach ( $list as $user_id => $username ) {
+            $i++;
+            $status = $this->tg->getStatus( $this->info['chat_id'], $user_id );
+
+            switch ($status) {
+              case 'administrator':
+                break;
+              case 'left':
+              case 'kicked':
+              case 'Bad Request: USER_ID_INVALID':
+                $not_exist_users[] = $user_id;
+                break;
+              default:
+                $to_kick++;
+                $find = [ '{{ user_id }}', '{{ username }}' ];
+                $replace = ['user_id' => $user_id, 'username' =>  preg_replace( $pattern, '', $username ) ];
+                if ( $to_kick > 1 )
+                  $tmpl .= ', ';
+
+                $tmpl .= str_replace( $find, $replace, $this->lang['respond']['tanos']['row'] );
+              break; 
+            }
+  
+            if ( $to_kick == $max_users || $i == $length ){
+              $this->db_post->kickUsers( $not_exist_users );
+  
+              if ( $to_kick == 0 )
+                return $i . ' мёртвых душ было удалено';
+              
+              return $tmpl.$this->lang['respond']['tanos']['ask'];
+            }
+          }
+
+          return 'всё пошло по пизде';
         // Bot dialogs
         case preg_match( '/\b(' . $this->lang['dialog']['ask_1'] . ')\b/iu', $this->info['msg_text'] ):
           return $this->lang['dialog']['answer_1'];
@@ -329,8 +358,8 @@
           $cmd = $this->lang['command']['add_sticker'];
         case preg_match( '/\b(' . $this->lang['command']['add_sticker2'] . ')\b/iu', $this->info['msg_text'] ):
           $cmd = $cmd ?: $this->lang['command']['add_sticker2'];
-          if ( $this->info['reply_from_is_bot'] )
-            exit('ok');
+          //if ( $this->info['reply_from_is_bot'] )
+            //exit('ok');
 
           return $this->makeQuote( '/data/quotes/', $cmd ); // Make new sticker
         default:
@@ -365,7 +394,7 @@
             $this->db_post->updateBio( $bio, $user_id[1] );
             return $this->lang['respond']['bio']['approved']; // Bio approved
           }
-        case preg_match( '/\b(' . $this->lang['respond']['tanos']['list'] . ')\b/iu', $this->info['reply_text'] ):
+        case preg_match( '/\b('. $this->lang['respond']['tanos']['list'] . ')\b/u', $this->info['reply_text'] ):
           if ( !$this->is_admin )
             return $this->lang['respond']['not_admin'];
 
@@ -406,7 +435,7 @@
       $user_id = $this->info['reply_from_id'];
       $replied_user_db = $this->db->getUserData( $this->info['reply_from_id'] );
       $user_db = $this->db->getUserData( $this->info['user_id'] );
-      $last_time = strtotime( $user_db['last_karma_send'] );
+      $last_time = $user_db['last_karma_send'];
 
       switch ( true ) {
         case in_array( $this->info['msg_text'], $this->lang['command']['karma_plus'] ):
@@ -419,7 +448,8 @@
           $find = [ '{{ user_id }}', '{{ username }}', '{{ karma }}' ];
           $replace = compact( 'user_id', 'username' , 'karma' );
           $this->db_post->karmaUpdate( $this->info['reply_from_id'], $this->info['user_id'], $karma_plus );
-          return str_replace( $find, $replace, $msg_tmpl ); // Karma changed
+            exit('ok');
+          // return str_replace( $find, $replace, $msg_tmpl ); // Karma changed
         case preg_match( '/\b(' . $this->lang['command']['not_liar'] . ')\b/iu', $this->info['msg_text'] ):
           if ( !$this->is_admin )
             return $this->lang['respond']['not_admin'];
@@ -440,7 +470,7 @@
             $honest_days = $passed[0] . ' ' . $passed[1];
             $tmpl = $this->lang['respond']['liar']['add'];
           }
-          $tmpl .= $this->liesCounter( $lies ); // Add to template
+          $tmpl .= $this->liesCounter( (int)$lies ); // Add to template
           $this->db_post->lieUpdate( $this->info['reply_from_id'], $not_liar ); 
           $find = [ '{{ user_id }}', '{{ username }}', '{{ honest_days }}', '{{ lies }}' ];
           $replace = compact( 'user_id', 'username', 'honest_days', 'lies' );
@@ -482,24 +512,13 @@
       $passed = $this->daysPassed( $user_db['first_seen'] ); // Reg date with plural local format 
       $reg_days = $passed[0] . ' ' . $passed[1];
       $msgs = $user_db['msgs'];
-      $num = strlen( $msgs ) == 1 ? $msgs : substr( $msgs, -1 );
-      switch ( $num ) { // Plural local format of message 
-        case 1:
-          $local = $this->lang['local']['message'];
-          break;
-        case 2: case 3: case 4:
-          $local = $this->lang['local']['messages'];
-          break;
-        default:
-          $local = $this->lang['local']['messages_many'];
-          break;
-      }
-      $karma = $user_db['karma'];
+      $local = $this->local_plural( $msgs, $this->lang['local']['message'] );
+      $karma = (int)$user_db['karma'];
       $lies = $user_db['lie_times'];
       // Build template
       $msg_tmpl = isset( $bio ) ? $this->lang['respond']['bio']['find'] : $this->lang['respond']['bio']['empty'];
       $msg_tmpl .= $this->lang['respond']['bio']['second_line'];
-      $msg_tmpl .= PHP_EOL . PHP_EOL . $this->liesCounter( $lies );
+      $msg_tmpl .= PHP_EOL . PHP_EOL . $this->liesCounter( (int)$lies );
       $passed = $this->daysPassed( $user_db['last_lie'] ); // Days without lies, with plural local format 
       $honest_days = $passed[0] . ' ' . $passed[1];
       $find = [ '{{ user_id }}', '{{ username }}', '{{ bio }}', '{{ reg_days }}', '{{ msgs }}', 
@@ -661,23 +680,12 @@
      */
     private function liesCounter( int $lies ): string
     {
-      if ( $lies == 0 )
+      $tmpl = $this->lang['respond']['liar']['honest_days'];
+      if ( $lies > 0 )
+        $tmpl .= '<b> ' . $this->local_plural( $lies, $this->lang['local']['catch'] ) . '</b>.';
+      else
         $tmpl = $this->lang['respond']['liar']['not_liar'];
-      else {
-        $tmpl = $this->lang['respond']['liar']['honest_days'];
-        $num = strlen($lies) == 1 ? $lies : substr($lies, -1); 
-        switch ($num) {
-          case 1:
-            $tmpl .= ' <b>' . $this->lang['local']['once'] . '</b>.';
-            break;
-          case 2: case 3: case 4:
-            $tmpl .= ' <b>' . $this->lang['local']['times'] . '</b>.';
-            break;
-          default:
-            $tmpl .= ' <b>' . $this->lang['local']['times_many'] . '</b>.';
-            break;
-        }
-      }
+        
       return $tmpl;
     }
 
@@ -688,28 +696,34 @@
      * @param  int    $to   [description]
      * @return [type]       [description]
      */
-    private function daysPassed( string $from ): array
+    private function daysPassed( $from ): array
     {
-      $from = strtotime( $from );
+      $date = new \DateTime( $from );
+      $from = $date->format( 'U' );
       $datediff = time() - $from;
-      $days = round ($datediff / (60 * 60 * 24) );
-      $num = strlen($days) == 1 ? $days : substr($days, -1);
-      switch ($num) {
-        case 0:
-          $days = 1;
-        case 1:
-          $local = $this->lang['local']['day'];
-          break;
-        case 2: case 3: case 4:
-          $local = $this->lang['local']['days'];
-          break;
-        default:
-          $local = $this->lang['local']['days_many'];
-          break;
-      }
+      $days = round ( $datediff / (60 * 60 * 24) );
+      if ( $days == 0 )
+        $days = 1;
+
+      $local = $this->local_plural( $days, $this->lang['local']['day'] );
       return [ $days, $local ];
     }
 
+
+    private function local_plural ( int $num, array $local_arr ): string
+    {
+      $n = abs( $num ) % 100;
+      $n1 = $n % 10;
+
+      switch ($n1) {
+        case 0: case 1:
+          return $local_arr[0];
+        case 2: case 3: case 4:
+          return $local_arr[1];
+        default:
+          return $local_arr[2];
+      };
+    }
 
     /**
      * [mkdirIfNotExist description]
@@ -739,9 +753,10 @@
       }
 
       $rules = 'Any-Latin; NFD; [:Nonspacing Mark:] Remove; NFC; [:Punctuation:] Remove; Lower();';
-      $translate = transliterator_transliterate( $rules, $title );
+      $translate = transliterator_transliterate( $rules, trim($title) );
       $translate = preg_replace( '/[-\s]+/', '_', $translate );
-      return [ $title, $translate ];
+      $text = preg_replace( '/[^\w]/', '', $translate );
+      return [ $title, $text ];
     } 
 
   }

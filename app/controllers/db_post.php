@@ -67,6 +67,9 @@
       $i = 0;
 
       $length = count( $user_array );
+      if ( $length == 0 )
+        return 'no_users';
+      
       foreach ( $user_array as $user_id ) {
         $i++;
         $query .= $i !== $length ? "DELETE FROM $this->table WHERE user_id = ?; " : "DELETE FROM $this->table WHERE user_id = ?";

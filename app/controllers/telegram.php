@@ -80,6 +80,9 @@
     {
       $raw = $this->request( 'getChatMember', ['chat_id' => $chat_id, 'user_id' => $user_id] );
       $array = json_decode( $raw, true );
+      if ( empty($array['ok']) )
+        return $array['description'];
+
       return preg_replace( '/[^a-z]/iu', '', $array['result']['status'] );
     }
 
