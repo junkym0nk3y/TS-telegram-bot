@@ -2,7 +2,7 @@
   setlocale( LC_TIME, 'ru_RU.utf8' );
   date_default_timezone_set( 'Europe/Moscow' );
   header( 'Content-Type: application/json; charset=utf-8', true, 200 );
-  define( 'DEBUG', false );
+  define( 'DEBUG', true );
   define( 'LOG_FOLDER', $_SERVER['DOCUMENT_ROOT'] . '/logs/' );
 
   $lang     = parse_ini_file( './app/configs/bot.ini', true );                  // List of bot's commands
